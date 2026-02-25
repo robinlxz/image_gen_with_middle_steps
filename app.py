@@ -1,5 +1,6 @@
 import os
 import time
+from datetime import datetime, date
 from flask import Flask, render_template, request, jsonify
 from dotenv import load_dotenv
 from openai import OpenAI
@@ -14,6 +15,49 @@ app = Flask(__name__, static_folder='static', static_url_path='/static')
 API_KEY = os.getenv("IMAGE_GEN_API_KEY")
 BASE_URL = os.getenv("ARK_BASE_URL", "https://ark.ap-southeast.bytepluses.com/api/v3")
 ACCESS_CODE = os.getenv("ACCESS_CODE")  # Optional access code
+
+# Rate Limiting Config
+MAX_PROMPT_LENGTH = 1000
+
+# Quotas per model ID
+MODEL_QUOTAS = {
+    "model_1": 50,   # Seedream 5.0 (Expensive)
+    "model_2": 200   # Seedream 4.0 (Cheap)
+}
+
+# Simple In-Memory Rate Limiter
+rate_limit_store = {
+    "date": date.today(),
+    "counts": {
+        "model_1": 0,
+        "model_2": 0
+    }
+}
+
+def check_rate_limit(model_id):
+    """Check if daily limit is exceeded for a specific model"""
+    today = date.today()
+    
+    # Reset counter if new day
+    if rate_limit_store["date"] != today:
+        rate_limit_store["date"] = today
+        rate_limit_store["counts"] = {k: 0 for k in MODEL_QUOTAS.keys()}
+        
+    current_count = rate_limit_store["counts"].get(model_id, 0)
+    max_limit = MODEL_QUOTAS.get(model_id, 0)
+    
+    if current_count >= max_limit:
+        return False, f"Daily limit of {max_limit} images reached for this model. Try the other model!"
+        
+    return True, ""
+
+def increment_rate_limit(model_id):
+    """Increment the daily counter for a specific model"""
+    if model_id in rate_limit_store["counts"]:
+        rate_limit_store["counts"][model_id] += 1
+    else:
+        # Handle unexpected model IDs safely
+        rate_limit_store["counts"][model_id] = 1
 
 # Text Generation Config
 TEXT_API_KEY = os.getenv("TEXT_GEN_API_KEY")
@@ -178,6 +222,15 @@ def generate_image():
     if not user_prompt:
         return jsonify({"error": "No prompt provided"}), 400
 
+    # 2. Input Validation (Length Check)
+    if len(user_prompt) > MAX_PROMPT_LENGTH:
+        return jsonify({"error": f"Prompt too long ({len(user_prompt)} chars). Max allowed: {MAX_PROMPT_LENGTH}"}), 400
+
+    # 3. Rate Limit Check
+    allowed, message = check_rate_limit()
+    if not allowed:
+        return jsonify({"error": message}), 429
+
     # Get model configuration
     selected_model = MODELS.get(model_id)
     if not selected_model or not selected_model["endpoint"]:
@@ -201,6 +254,9 @@ def generate_image():
             prompt=final_prompt,
             size=selected_model["size"], 
         )
+        
+        # Increment counter only on success
+        increment_rate_limit()
         
         end_time = time.time()
         elapsed_time = round(end_time - start_time, 2)
