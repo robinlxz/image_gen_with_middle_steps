@@ -1,7 +1,8 @@
 import multiprocessing
 
 # Bind to all interfaces (for ECS)
-bind = "0.0.0.0:5000"
+# Using 8080 as it's a standard alternative HTTP port and less likely to be blocked
+bind = "0.0.0.0:8080"
 
 # Worker processes (usually 2 * CPU + 1)
 # For a small ECS instance (2 vCPU), 3-4 workers is good.

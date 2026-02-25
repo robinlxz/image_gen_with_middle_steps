@@ -11,8 +11,12 @@ This project demonstrates how to:
 
 - **Multi-Model Support**: Switch seamlessly between different models (e.g., High Quality vs. Fast/Cheap).
 - **Smart Configuration**: Automatically adjusts image resolution requirements based on the selected model (e.g., 1920x1920 for Seedream 5.0 Lite).
+- **Style Selector**: Choose from preset styles like Cyberpunk, Watercolor, Ghibli, etc.
+- **Prompt Enhancement**: Automatically rewrites simple prompts into detailed masterpieces using LLMs (Doubao/DeepSeek).
+- **Access Control**: Simple password protection for private deployments.
+- **Debug Panel**: Inspect generation time, token usage, and prompt rewriting results.
 - **Clean UI**: Responsive web interface built with Vanilla JS and CSS.
-- **Extensible Backend**: Flask-based backend ready for adding "Agentic" workflows (prompt rewriting, style transfer, etc.).
+- **Extensible Backend**: Flask-based backend ready for adding "Agentic" workflows.
 
 ## Prerequisites
 
@@ -63,9 +67,22 @@ This project demonstrates how to:
     MODEL_2_NAME=Seedream 4.0
     MODEL_2_ENDPOINT=ep-202xxxxx-xxxxx
     MODEL_2_SIZE=1024x1024
+
+    # Text Generation Config (Optional - for Prompt Enhancement)
+    TEXT_GEN_API_KEY=your_byteplus_api_key
+    TEXT_GEN_BASE_URL=https://ark.ap-southeast.bytepluses.com/api/v3
+    TEXT_GEN_MODEL_ENDPOINT=ep-202xxxxx-xxxxx
+    ```
+
+5.  **Validate Configuration:**
+    Run the validation script to ensure all API keys and endpoints are correct:
+    ```bash
+    python validate_config.py
     ```
 
 ## Usage
+
+### Local Development
 
 1.  **Start the server:**
     ```bash
@@ -73,12 +90,21 @@ This project demonstrates how to:
     ```
 
 2.  **Open your browser:**
-    Navigate to `http://127.0.0.1:5000`.
+    Navigate to `http://127.0.0.1:5000` (Local) or `http://your-ip:8080` (ECS).
+    If you set an `ACCESS_CODE`, enter it in the top input field.
 
-3.  **Generate Images:**
-    - Select a model from the dropdown.
-    - Enter a prompt description.
-    - Click "Generate Image".
+### Production Deployment (ECS)
+
+This project includes a production-ready `gunicorn` configuration and a deployment script.
+
+1.  **Clone code to your server.**
+2.  **Configure `.env`**.
+3.  **Run the deployment script:**
+    ```bash
+    chmod +x deploy.sh
+    ./deploy.sh
+    ```
+    *Note: By default, this runs Gunicorn in the foreground. For background execution, use `nohup` or a systemd service.*
 
 ## Project Structure
 
