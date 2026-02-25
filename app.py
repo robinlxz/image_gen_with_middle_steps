@@ -1,4 +1,5 @@
 import os
+import time
 from flask import Flask, render_template, request, jsonify
 from dotenv import load_dotenv
 from openai import OpenAI
@@ -12,6 +13,7 @@ app = Flask(__name__, static_folder='static', static_url_path='/static')
 # Configuration
 API_KEY = os.getenv("IMAGE_GEN_API_KEY")
 BASE_URL = os.getenv("ARK_BASE_URL", "https://ark.ap-southeast.bytepluses.com/api/v3")
+ACCESS_CODE = os.getenv("ACCESS_CODE")  # Optional access code
 
 # Text Generation Config
 TEXT_API_KEY = os.getenv("TEXT_GEN_API_KEY")
@@ -158,10 +160,17 @@ def get_config():
 
 @app.route('/generate', methods=['POST'])
 def generate_image():
+    data = request.json
+    
+    # 1. Simple Authentication Check
+    if ACCESS_CODE:
+        user_code = data.get('access_code')
+        if user_code != ACCESS_CODE:
+            return jsonify({"error": "Invalid Access Code"}), 401
+
     if not API_KEY:
         return jsonify({"error": "API Key not configured in .env"}), 500
 
-    data = request.json
     user_prompt = data.get('prompt')
     model_id = data.get('model_id', 'model_2') # Default to model_2 (cheaper one)
     style_id = data.get('style_id', 'none')
@@ -175,7 +184,12 @@ def generate_image():
         return jsonify({"error": "Invalid model selected or model not configured"}), 400
 
     # Step 1: Process the prompt (Apply Style)
+    start_time = time.time()
     final_prompt = process_prompt(user_prompt, style_id)
+    
+    # Calculate simple token estimate (approx 4 chars per token)
+    # This is a rough estimation for the prompt cost
+    estimated_prompt_tokens = len(final_prompt) // 4
 
     try:
         print(f"Generating with Model: {selected_model['name']} ({selected_model['endpoint']})")
@@ -187,6 +201,9 @@ def generate_image():
             prompt=final_prompt,
             size=selected_model["size"], 
         )
+        
+        end_time = time.time()
+        elapsed_time = round(end_time - start_time, 2)
         
         # Extract image URL
         if response.data and len(response.data) > 0:
@@ -200,7 +217,12 @@ def generate_image():
                 "original_prompt": user_prompt,
                 "final_prompt": final_prompt,
                 "model_used": selected_model["name"],
-                "style_used": style_name
+                "style_used": style_name,
+                "debug_info": {
+                    "time_elapsed": f"{elapsed_time}s",
+                    "prompt_length": len(final_prompt),
+                    "estimated_tokens": estimated_prompt_tokens
+                }
             })
         else:
             return jsonify({"error": "No image data returned from API"}), 500

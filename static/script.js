@@ -1,6 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     const generateBtn = document.getElementById('generateBtn');
     const promptInput = document.getElementById('promptInput');
+    const accessCodeInput = document.getElementById('accessCode');
     const modelSelect = document.getElementById('modelSelect');
     const styleOptionsContainer = document.getElementById('styleOptions');
     const selectedStyleInput = document.getElementById('selectedStyle');
@@ -12,6 +13,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const finalPromptDisplay = document.getElementById('finalPromptDisplay');
     const debugSection = document.getElementById('debugSection');
     const debugFinalPrompt = document.getElementById('debugFinalPrompt');
+    const debugOriginalPrompt = document.getElementById('debugOriginalPrompt');
+    const debugTime = document.getElementById('debugTime');
+    const debugTokens = document.getElementById('debugTokens');
 
     // Fetch and populate models & styles on load
     fetchConfig();
@@ -69,6 +73,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     generateBtn.addEventListener('click', async () => {
         const prompt = promptInput.value.trim();
+        const accessCode = accessCodeInput.value.trim();
         const selectedModel = modelSelect.value;
         const selectedStyle = selectedStyleInput.value;
         
@@ -92,6 +97,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 },
                 body: JSON.stringify({ 
                     prompt: prompt,
+                    access_code: accessCode,
                     model_id: selectedModel,
                     style_id: selectedStyle
                 }),
@@ -111,7 +117,14 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
             
             // Populate Debug Info
+            debugOriginalPrompt.textContent = data.original_prompt;
             debugFinalPrompt.textContent = data.final_prompt;
+            
+            if (data.debug_info) {
+                debugTime.textContent = data.debug_info.time_elapsed;
+                debugTokens.textContent = data.debug_info.estimated_tokens;
+            }
+            
             debugSection.classList.remove('hidden');
 
             resultSection.classList.remove('hidden');

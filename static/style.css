@@ -29,6 +29,19 @@ h1 {
     margin-bottom: 20px;
 }
 
+.auth-container {
+    text-align: left;
+    margin-bottom: 5px;
+}
+
+.auth-container input {
+    padding: 8px;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+    font-size: 14px;
+    width: 200px;
+}
+
 .model-select-container, .style-select-container {
     text-align: left;
     margin-bottom: 5px;
@@ -171,4 +184,26 @@ button:disabled {
     font-family: 'Consolas', 'Monaco', monospace;
     color: #2c3e50;
     margin-top: 5px;
+}
+
+.debug-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+.debug-metrics {
+    margin-top: 15px;
+    padding-top: 10px;
+    border-top: 1px dashed #dee2e6;
+    display: flex;
+    gap: 20px;
+    font-size: 14px;
+    color: #333;
+}
+
+@media (max-width: 600px) {
+    .debug-grid {
+        grid-template-columns: 1fr;
+    }
 }

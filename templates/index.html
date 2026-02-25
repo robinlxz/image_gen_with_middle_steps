@@ -12,6 +12,11 @@
         <h1>AI Image Generator</h1>
         
         <div class="input-section">
+            <div class="auth-container">
+                <label for="accessCode">Access Code:</label>
+                <input type="password" id="accessCode" placeholder="Enter access code">
+            </div>
+
             <div class="model-select-container">
                 <label for="modelSelect">Select Model:</label>
                 <select id="modelSelect">
@@ -48,9 +53,19 @@
         <details id="debugSection" class="debug-section hidden">
             <summary>Debug Info</summary>
             <div class="debug-content">
-                <div class="debug-item">
-                    <strong>Final Prompt:</strong>
-                    <pre id="debugFinalPrompt">Waiting for generation...</pre>
+                <div class="debug-grid">
+                    <div class="debug-item">
+                        <strong>Original Prompt:</strong>
+                        <pre id="debugOriginalPrompt">...</pre>
+                    </div>
+                    <div class="debug-item">
+                        <strong>Final Prompt (Processed):</strong>
+                        <pre id="debugFinalPrompt">...</pre>
+                    </div>
+                </div>
+                <div class="debug-metrics">
+                    <span><strong>Time:</strong> <span id="debugTime">0s</span></span>
+                    <span><strong>Est. Tokens:</strong> <span id="debugTokens">0</span></span>
                 </div>
             </div>
         </details>
