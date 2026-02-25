@@ -1,7 +1,7 @@
 import os
 from flask import Flask, render_template, request, jsonify
 from dotenv import load_dotenv
-from volcenginesdkarkruntime import Ark
+from openai import OpenAI
 
 # Load environment variables
 load_dotenv()
@@ -11,9 +11,13 @@ app = Flask(__name__)
 # Configuration
 API_KEY = os.getenv("IMAGE_GEN_API_KEY")
 MODEL_ENDPOINT_ID = os.getenv("IMAGE_GEN_ENDPOINT")
+BASE_URL = os.getenv("ARK_BASE_URL", "https://ark.ap-southeast.bytepluses.com/api/v3")
 
-# Initialize Ark Client
-client = Ark(api_key=API_KEY)
+# Initialize OpenAI Client
+client = OpenAI(
+    api_key=API_KEY,
+    base_url=BASE_URL
+)
 
 def process_prompt(original_prompt):
     """
@@ -50,7 +54,6 @@ def generate_image():
             model=MODEL_ENDPOINT_ID,
             prompt=final_prompt,
             size="1024x1024",  # Adjust if your model supports different sizes
-            n=1
         )
         
         # Extract image URL
