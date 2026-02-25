@@ -1,0 +1,4 @@
+flask
+requests
+python-dotenv
+volcengine-python-sdk[ark]

@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Image Generator</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>AI Image Generator</h1>
+        
+        <div class="input-section">
+            <textarea id="promptInput" placeholder="Describe the image you want to generate..."></textarea>
+            <button id="generateBtn">Generate Image</button>
+        </div>
+
+        <div id="loading" class="hidden">
+            <p>Generating... please wait.</p>
+        </div>
+
+        <div id="resultSection" class="hidden">
+            <img id="generatedImage" src="" alt="Generated Image">
+            <p id="finalPromptDisplay"></p>
+        </div>
+
+        <div id="errorSection" class="hidden error">
+            <p id="errorMessage"></p>
+        </div>
+    </div>
+
+    <script src="/static/script.js"></script>
+</body>
+</html>
