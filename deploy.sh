@@ -1,47 +1,112 @@
 #!/bin/bash
+set -e  # Exit immediately if a command exits with a non-zero status.
 
-# Exit immediately if a command exits with a non-zero status
-set -e
+# Ensure we are in the script's directory (project root)
+cd "$(dirname "$0")"
 
-# Simple deployment script for ECS
+# Colors for output
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+RED='\033[0;31m'
+NC='\033[0m' # No Color
 
-echo "🚀 Starting Deployment..."
+echo -e "${GREEN}>>> Starting Deployment Script (Systemd Version) for AI Image Generator...${NC}"
 
-# 1. Update Code (if this is run via git pull)
-# git pull
-
-# 2. Setup Virtual Environment (if not exists)
-if [ ! -d "venv" ]; then
-    echo "Creating virtual environment..."
-    python3 -m venv venv
-fi
-
-# 3. Activate Environment
-source venv/bin/activate
-
-# 4. Install Dependencies
-echo "📦 Installing dependencies..."
-# Upgrade pip first to avoid some issues
-pip install --upgrade pip
-# Install with no cache to avoid corruption issues
-pip install --no-cache-dir -r requirements.txt
-pip install --no-cache-dir gunicorn
-
-# 5. Check Configuration
-echo "🔍 Validating configuration..."
-if [ ! -f ".env" ]; then
-    echo "⚠️ .env file not found! Please create one from .env.example"
+# 1. System Check & Dependencies
+echo -e "${YELLOW}[1/5] Checking system dependencies...${NC}"
+if command -v apt-get >/dev/null; then
+    echo "Detected apt-based system (Ubuntu/Debian/veLinux). Updating..."
+    # sudo apt-get update -qq
+    # Only install if missing to save time
+    if ! dpkg -s python3-venv >/dev/null 2>&1; then
+        echo "Installing python3-venv..."
+        sudo apt-get install -y python3-venv
+    fi
+    if ! dpkg -s python3-pip >/dev/null 2>&1; then
+        echo "Installing python3-pip..."
+        sudo apt-get install -y python3-pip
+    fi
+    if ! dpkg -s git >/dev/null 2>&1; then
+        echo "Installing git..."
+        sudo apt-get install -y git
+    fi
+else
+    echo -e "${RED}Error: This script supports Ubuntu/Debian/veLinux (apt) only.${NC}"
+    echo "Please install python3-venv, python3-pip, and git manually."
     exit 1
 fi
 
-# 6. Start Server (in background or managed by systemd usually, but here we run directly)
-echo "🔥 Starting Gunicorn Server..."
-# Run with gunicorn using our config file
-# Note: In production, you might want to use 'nohup' or systemd
-if pgrep gunicorn > /dev/null; then
-    echo "⚠️ Gunicorn is already running. Restarting..."
-    pkill gunicorn
-    sleep 2
+# 2. Python Virtual Environment
+echo -e "${YELLOW}[2/5] Setting up Python virtual environment...${NC}"
+if [ ! -d "venv" ]; then
+    echo "Creating venv..."
+    python3 -m venv venv
+else
+    echo "venv already exists."
 fi
 
-gunicorn -c gunicorn_config.py app:app
+# Use absolute path for python executable in venv
+PROJECT_ROOT=$(pwd)
+VENV_PYTHON="$PROJECT_ROOT/venv/bin/python"
+VENV_PIP="$PROJECT_ROOT/venv/bin/pip"
+VENV_GUNICORN="$PROJECT_ROOT/venv/bin/gunicorn"
+
+# 3. Install Python Dependencies
+echo -e "${YELLOW}[3/5] Installing Python requirements...${NC}"
+$VENV_PIP install --upgrade pip
+$VENV_PIP install --no-cache-dir -r requirements.txt
+$VENV_PIP install --no-cache-dir gunicorn
+
+# 4. Environment Configuration Check
+echo -e "${YELLOW}[4/5] Checking configuration...${NC}"
+if [ ! -f ".env" ]; then
+    echo -e "${RED}Error: .env file not found!${NC}"
+    echo "Please create a .env file with your API keys before running this script."
+    exit 1
+fi
+
+# 5. Systemd Service Setup
+echo -e "${YELLOW}[5/5] Configuring Systemd Service...${NC}"
+
+SERVICE_TEMPLATE="picgen.service"
+TARGET_SERVICE_NAME="picgen.service"
+TARGET_SERVICE_PATH="/etc/systemd/system/$TARGET_SERVICE_NAME"
+
+if [ ! -f "$SERVICE_TEMPLATE" ]; then
+    echo -e "${RED}Error: $SERVICE_TEMPLATE template not found in current directory.${NC}"
+    exit 1
+fi
+
+# Get current user to run the service
+CURRENT_USER=$(whoami)
+echo "Service will run as user: $CURRENT_USER"
+
+# Create a temporary service file with correct paths and user
+echo "Generating service configuration..."
+cp $SERVICE_TEMPLATE "${SERVICE_TEMPLATE}.tmp"
+
+# Replace placeholders using sed
+# 1. Update WorkingDirectory
+sed -i "s|WorkingDirectory=.*|WorkingDirectory=$PROJECT_ROOT|g" "${SERVICE_TEMPLATE}.tmp"
+# 2. Update ExecStart (Use Gunicorn from venv)
+sed -i "s|ExecStart=.*|ExecStart=$VENV_GUNICORN -c gunicorn_config.py app:app|g" "${SERVICE_TEMPLATE}.tmp"
+# 3. Update User
+sed -i "s|User=.*|User=$CURRENT_USER|g" "${SERVICE_TEMPLATE}.tmp"
+# 4. Update EnvironmentFile path
+sed -i "s|EnvironmentFile=.*|EnvironmentFile=$PROJECT_ROOT/.env|g" "${SERVICE_TEMPLATE}.tmp"
+
+echo "Installing service to $TARGET_SERVICE_PATH..."
+sudo mv "${SERVICE_TEMPLATE}.tmp" "$TARGET_SERVICE_PATH"
+
+# Reload systemd and enable service
+echo "Reloading systemd daemon..."
+sudo systemctl daemon-reload
+echo "Enabling $TARGET_SERVICE_NAME..."
+sudo systemctl enable $TARGET_SERVICE_NAME
+echo "Restarting $TARGET_SERVICE_NAME..."
+sudo systemctl restart $TARGET_SERVICE_NAME
+
+echo -e "${GREEN}>>> Deployment Complete!${NC}"
+echo -e "Service status:"
+sudo systemctl status $TARGET_SERVICE_NAME --no-pager | head -n 10
+echo -e "\nTo view logs: journalctl -u $TARGET_SERVICE_NAME -f"

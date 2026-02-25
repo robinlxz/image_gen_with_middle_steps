@@ -1,0 +1,22 @@
+[Unit]
+Description=AI Image Generator Service (Gunicorn)
+After=network.target
+
+[Service]
+# User and WorkingDirectory will be updated by deploy.sh
+User=root
+WorkingDirectory=/root/test_pic_gen
+# ExecStart will be updated by deploy.sh
+ExecStart=/usr/bin/python3 app.py
+# EnvironmentFile will be updated by deploy.sh
+EnvironmentFile=/root/test_pic_gen/.env
+
+Restart=always
+RestartSec=5
+
+# Logging (Optional, systemd handles stdout/stderr by default)
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
