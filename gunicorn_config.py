@@ -1,8 +1,8 @@
 import multiprocessing
 
 # Bind to all interfaces (for ECS)
-# Using 80 as requested to bypass potential firewall issues on 8080
-bind = "0.0.0.0:80"
+# Using 8080 as verified it works now
+bind = "0.0.0.0:8080"
 
 # Worker processes (usually 2 * CPU + 1)
 # For a small ECS instance (2 vCPU), 3-4 workers is good.
