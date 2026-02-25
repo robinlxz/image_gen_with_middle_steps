@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Simple Image Generator</title>
-    <link rel="stylesheet" href="/static/style.css">
+    <!-- Add version parameter to force cache refresh -->
+    <link rel="stylesheet" href="/static/style.css?v=1.0">
 </head>
 <body>
     <div class="container">
@@ -17,6 +18,15 @@
                     <!-- Options will be populated by JS -->
                 </select>
             </div>
+            
+            <div class="style-select-container">
+                <label>Select Style:</label>
+                <div id="styleOptions" class="style-options">
+                    <!-- Style buttons will be populated by JS -->
+                </div>
+                <input type="hidden" id="selectedStyle" value="none">
+            </div>
+
             <textarea id="promptInput" placeholder="Describe the image you want to generate..."></textarea>
             <button id="generateBtn">Generate Image</button>
         </div>
@@ -33,6 +43,17 @@
         <div id="errorSection" class="hidden error">
             <p id="errorMessage"></p>
         </div>
+
+        <!-- Debug Section (Collapsible) -->
+        <details id="debugSection" class="debug-section hidden">
+            <summary>Debug Info</summary>
+            <div class="debug-content">
+                <div class="debug-item">
+                    <strong>Final Prompt:</strong>
+                    <pre id="debugFinalPrompt">Waiting for generation...</pre>
+                </div>
+            </div>
+        </details>
     </div>
 
     <script src="/static/script.js"></script>

@@ -29,7 +29,7 @@ h1 {
     margin-bottom: 20px;
 }
 
-.model-select-container {
+.model-select-container, .style-select-container {
     text-align: left;
     margin-bottom: 5px;
 }
@@ -37,6 +37,8 @@ h1 {
 label {
     font-weight: 600;
     margin-right: 10px;
+    display: block;
+    margin-bottom: 5px;
 }
 
 select {
@@ -46,6 +48,33 @@ select {
     font-size: 14px;
     background-color: white;
     min-width: 200px;
+}
+
+/* Style Options Grid */
+.style-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.style-option {
+    padding: 8px 16px;
+    border: 1px solid #ddd;
+    border-radius: 20px;
+    background-color: #f9f9f9;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 14px;
+}
+
+.style-option:hover {
+    background-color: #e0e0e0;
+}
+
+.style-option.selected {
+    background-color: #3498db;
+    color: white;
+    border-color: #3498db;
 }
 
 textarea {
@@ -97,4 +126,49 @@ button:disabled {
     padding: 10px;
     border-radius: 4px;
     margin-top: 20px;
+}
+
+/* Debug Section */
+.debug-section {
+    margin-top: 30px;
+    padding: 10px;
+    background-color: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 4px;
+    text-align: left;
+    font-size: 13px;
+    color: #666;
+}
+
+.debug-section summary {
+    cursor: pointer;
+    font-weight: 600;
+    color: #495057;
+    outline: none;
+    padding: 5px;
+}
+
+.debug-section summary:hover {
+    color: #2c3e50;
+}
+
+.debug-content {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid #dee2e6;
+}
+
+.debug-item {
+    margin-bottom: 10px;
+}
+
+.debug-item pre {
+    background-color: #eef1f3;
+    padding: 10px;
+    border-radius: 4px;
+    white-space: pre-wrap; /* Wrap long lines */
+    word-break: break-all;
+    font-family: 'Consolas', 'Monaco', monospace;
+    color: #2c3e50;
+    margin-top: 5px;
 }

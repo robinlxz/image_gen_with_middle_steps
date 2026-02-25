@@ -2,49 +2,75 @@ document.addEventListener('DOMContentLoaded', () => {
     const generateBtn = document.getElementById('generateBtn');
     const promptInput = document.getElementById('promptInput');
     const modelSelect = document.getElementById('modelSelect');
+    const styleOptionsContainer = document.getElementById('styleOptions');
+    const selectedStyleInput = document.getElementById('selectedStyle');
     const loadingDiv = document.getElementById('loading');
     const resultSection = document.getElementById('resultSection');
     const generatedImage = document.getElementById('generatedImage');
     const errorSection = document.getElementById('errorSection');
     const errorMessage = document.getElementById('errorMessage');
     const finalPromptDisplay = document.getElementById('finalPromptDisplay');
+    const debugSection = document.getElementById('debugSection');
+    const debugFinalPrompt = document.getElementById('debugFinalPrompt');
 
-    // Fetch and populate models on load
-    fetchModels();
+    // Fetch and populate models & styles on load
+    fetchConfig();
 
-    async function fetchModels() {
+    async function fetchConfig() {
         try {
             const response = await fetch('/config');
             const data = await response.json();
             
-            // Clear existing options
+            // 1. Populate Models
             modelSelect.innerHTML = '';
-            
             if (data.models && data.models.length > 0) {
                 data.models.forEach(model => {
                     const option = document.createElement('option');
                     option.value = model.id;
                     option.textContent = model.name;
-                    // Default to model_2 (cheaper) if available, logic can be adjusted
-                    if (model.id === 'model_2') {
-                        option.selected = true;
-                    }
+                    if (model.id === 'model_2') option.selected = true;
                     modelSelect.appendChild(option);
                 });
             }
+
+            // 2. Populate Styles
+            styleOptionsContainer.innerHTML = '';
+            if (data.styles && data.styles.length > 0) {
+                data.styles.forEach(style => {
+                    const btn = document.createElement('div');
+                    btn.className = 'style-option';
+                    btn.textContent = style.name;
+                    btn.dataset.value = style.id;
+                    
+                    // Default selection
+                    if (style.id === 'none') {
+                        btn.classList.add('selected');
+                        selectedStyleInput.value = style.id;
+                    }
+
+                    // Click handler
+                    btn.addEventListener('click', () => {
+                        // Deselect all
+                        document.querySelectorAll('.style-option').forEach(b => b.classList.remove('selected'));
+                        // Select clicked
+                        btn.classList.add('selected');
+                        selectedStyleInput.value = style.id;
+                    });
+
+                    styleOptionsContainer.appendChild(btn);
+                });
+            }
+
         } catch (error) {
-            console.error('Failed to load models:', error);
-            // Fallback option
-            const option = document.createElement('option');
-            option.value = 'model_2';
-            option.textContent = 'Default Model';
-            modelSelect.appendChild(option);
+            console.error('Failed to load config:', error);
+            // Fallback UI if config fails
         }
     }
 
     generateBtn.addEventListener('click', async () => {
         const prompt = promptInput.value.trim();
         const selectedModel = modelSelect.value;
+        const selectedStyle = selectedStyleInput.value;
         
         if (!prompt) {
             alert('Please enter a prompt first.');
@@ -56,6 +82,7 @@ document.addEventListener('DOMContentLoaded', () => {
         loadingDiv.classList.remove('hidden');
         resultSection.classList.add('hidden');
         errorSection.classList.add('hidden');
+        debugSection.classList.add('hidden');
 
         try {
             const response = await fetch('/generate', {
@@ -65,7 +92,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 },
                 body: JSON.stringify({ 
                     prompt: prompt,
-                    model_id: selectedModel 
+                    model_id: selectedModel,
+                    style_id: selectedStyle
                 }),
             });
 
@@ -77,7 +105,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Success
             generatedImage.src = data.image_url;
-            finalPromptDisplay.innerHTML = `<strong>Model:</strong> ${data.model_used}<br><strong>Prompt used:</strong> "${data.final_prompt}"`;
+            finalPromptDisplay.innerHTML = `
+                <strong>Model:</strong> ${data.model_used}<br>
+                <strong>Style:</strong> ${data.style_used || 'Default'}<br>
+            `;
+            
+            // Populate Debug Info
+            debugFinalPrompt.textContent = data.final_prompt;
+            debugSection.classList.remove('hidden');
+
             resultSection.classList.remove('hidden');
 
         } catch (error) {
