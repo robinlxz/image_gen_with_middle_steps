@@ -164,6 +164,11 @@ def process_prompt(original_prompt, style_id="none"):
     Process the user prompt by appending the selected style suffix or using LLM enhancement.
     """
     print(f"Original Prompt: {original_prompt}")
+
+    # Check for magic flag to skip enhancement
+    if "--raw" in original_prompt:
+        print("Raw mode detected, skipping enhancement/style")
+        return original_prompt.replace("--raw", "").strip()
     
     style = STYLES.get(style_id)
     style_suffix = style['prompt_suffix'] if style else ""
@@ -226,8 +231,8 @@ def generate_image():
     if len(user_prompt) > MAX_PROMPT_LENGTH:
         return jsonify({"error": f"Prompt too long ({len(user_prompt)} chars). Max allowed: {MAX_PROMPT_LENGTH}"}), 400
 
-    # 3. Rate Limit Check
-    allowed, message = check_rate_limit()
+    # 3. Rate Limit Check (Per Model)
+    allowed, message = check_rate_limit(model_id)
     if not allowed:
         return jsonify({"error": message}), 429
 
@@ -236,12 +241,34 @@ def generate_image():
     if not selected_model or not selected_model["endpoint"]:
         return jsonify({"error": "Invalid model selected or model not configured"}), 400
 
-    # Step 1: Process the prompt (Apply Style)
+    # 4. Prompt Processing Pipeline
     start_time = time.time()
-    final_prompt = process_prompt(user_prompt, style_id)
+    # Magic word to skip enhancement
+    MAGIC_WORD = "#原图"
+    is_raw_mode = MAGIC_WORD in user_prompt
     
+    if is_raw_mode:
+        # Raw Mode: Skip enhancement and style templates
+        print(f"Raw mode detected: {user_prompt}")
+        final_prompt = user_prompt.replace(MAGIC_WORD, "").strip()
+        enhanced = False
+    else:
+        # Normal Mode: Apply enhancement and style
+        if TEXT_API_KEY and style_id == "none":
+            # Only use LLM enhancement if no specific style is selected
+            # (To avoid conflicting instructions)
+            final_prompt = enhance_prompt(user_prompt, "")
+            enhanced = True
+        else:
+            # Use style template logic
+            style_obj = STYLES.get(style_id)
+            suffix = style_obj['prompt_suffix'] if style_obj else ""
+            final_prompt = enhance_prompt(user_prompt, suffix)
+            enhanced = False if style_id == "none" else True
+
+    print(f"Final Prompt: {final_prompt}")
+
     # Calculate simple token estimate (approx 4 chars per token)
-    # This is a rough estimation for the prompt cost
     estimated_prompt_tokens = len(final_prompt) // 4
 
     try:
@@ -256,7 +283,7 @@ def generate_image():
         )
         
         # Increment counter only on success
-        increment_rate_limit()
+        increment_rate_limit(model_id)
         
         end_time = time.time()
         elapsed_time = round(end_time - start_time, 2)
