@@ -78,86 +78,96 @@ MODELS = {
     }
 }
 
-# Style Templates with Categories
+# Style Templates with Categories (Optimized for Seedream 4.0 strengths)
 STYLES = {
-    # === Group: Cinematic (Movies & TV) ===
+    # === Group: Anime & Illustration (Strongest) ===
+    "ghibli": {
+        "name": "Studio Ghibli (Healing)",
+        "group": "Anime & Illustration",
+        "prompt_suffix": ", Studio Ghibli style, Hayao Miyazaki, anime, vibrant colors, peaceful atmosphere, detailed background art, hand drawn style, summer clouds"
+    },
+    "shinkai": {
+        "name": "Makoto Shinkai (Vibrant)",
+        "group": "Anime & Illustration",
+        "prompt_suffix": ", Makoto Shinkai style, high contrast, lens flare, detailed clouds, cityscape, emotional atmosphere, stunning lighting, anime movie wallpaper"
+    },
+    "retro_anime": {
+        "name": "90s Retro Anime (Nostalgic)",
+        "group": "Anime & Illustration",
+        "prompt_suffix": ", 1990s anime style, cel shading, low resolution effect, vhs glitch, sailor moon aesthetic, cowboy bebop vibe, lo-fi"
+    },
+    "vector_art": {
+        "name": "Vector Illustration (Flat)",
+        "group": "Anime & Illustration",
+        "prompt_suffix": ", vector art, flat design, clean lines, minimal shading, vibrant solid colors, behance style, corporate memphis"
+    },
+
+    # === Group: Cinematic Concept (Atmospheric) ===
     "wes_anderson": {
-        "name": "Wes Anderson (Grand Budapest)",
-        "group": "Cinematic",
+        "name": "Wes Anderson (Symmetrical)",
+        "group": "Cinematic Concept",
         "prompt_suffix": ", in the style of Wes Anderson, symmetrical composition, pastel colors, retro aesthetic, highly detailed, whimsical, cinematic lighting"
     },
     "cyberpunk_2077": {
-        "name": "Cyberpunk 2077 (Neon Noir)",
-        "group": "Cinematic",
-        "prompt_suffix": ", cyberpunk 2077 style, neon lights, night city, rain, high tech low life, chromatic aberration, volumetric lighting, futuristic"
-    },
-    "ghibli": {
-        "name": "Studio Ghibli (Anime)",
-        "group": "Cinematic",
-        "prompt_suffix": ", Studio Ghibli style, Hayao Miyazaki, anime, vibrant colors, peaceful atmosphere, detailed background art, hand drawn style"
+        "name": "Cyberpunk (Neon)",
+        "group": "Cinematic Concept",
+        "prompt_suffix": ", cyberpunk style, neon lights, night city, rain, high tech low life, chromatic aberration, volumetric lighting, futuristic"
     },
     "dune": {
-        "name": "Dune (Epic Sci-Fi)",
-        "group": "Cinematic",
-        "prompt_suffix": ", Dune movie style, vast desert landscape, brutalist architecture, muted earth tones, cinematic scale, epic atmosphere, Denis Villeneuve"
+        "name": "Dune (Brutalist)",
+        "group": "Cinematic Concept",
+        "prompt_suffix": ", Dune movie style, vast desert landscape, brutalist architecture, muted earth tones, cinematic scale, epic atmosphere, fog"
     },
     
-    # === Group: Art Styles ===
+    # === Group: Traditional Art (Artistic) ===
     "van_gogh": {
-        "name": "Van Gogh (Starry Night)",
-        "group": "Art Styles",
+        "name": "Van Gogh (Impressionist)",
+        "group": "Traditional Art",
         "prompt_suffix": ", in the style of Vincent van Gogh, thick impasto brushstrokes, swirling patterns, vibrant blue and yellow colors, expressive oil painting"
     },
     "ukiyo_e": {
-        "name": "Ukiyo-e (Japanese Woodblock)",
-        "group": "Art Styles",
+        "name": "Ukiyo-e (Japanese)",
+        "group": "Traditional Art",
         "prompt_suffix": ", Ukiyo-e style, Japanese woodblock print, flat colors, bold outlines, Hokusai style, traditional japanese art"
     },
-    "pixel_art": {
-        "name": "Pixel Art (Retro Game)",
-        "group": "Art Styles",
-        "prompt_suffix": ", pixel art, 8-bit style, retro video game, low resolution, dithering, vibrant colors"
+    "chinese_ink": {
+        "name": "Chinese Ink (Shanshui)",
+        "group": "Traditional Art",
+        "prompt_suffix": ", chinese ink painting, guohua, brush strokes, negative space, misty mountains, monochrome with red accents, traditional art"
     },
     "watercolor": {
         "name": "Watercolor (Soft)",
-        "group": "Art Styles",
+        "group": "Traditional Art",
         "prompt_suffix": ", watercolor painting, soft edges, paper texture, wet-on-wet technique, dreamy atmosphere, artistic"
     },
 
-    # === Group: Photography ===
-    "polaroid": {
-        "name": "Polaroid (Vintage)",
-        "group": "Photography",
-        "prompt_suffix": ", polaroid photo, vintage aesthetic, film grain, soft focus, flash photography, nostalgia, 1990s style"
+    # === Group: Material & 3D (Fun & Cute) ===
+    "isometric": {
+        "name": "Isometric 3D (Cute)",
+        "group": "Material & 3D",
+        "prompt_suffix": ", isometric view, 3d render, blender style, cute, miniature world, soft lighting, pastel colors, clean background"
     },
-    "macro": {
-        "name": "Macro Photography (Close-up)",
-        "group": "Photography",
-        "prompt_suffix": ", macro photography, extreme close-up, high detail, shallow depth of field, bokeh background, sharp focus"
+    "claymation": {
+        "name": "Claymation (Stop Motion)",
+        "group": "Material & 3D",
+        "prompt_suffix": ", claymation style, aardman animation, plasticine texture, fingerprint details, stop motion, handmade feel, soft focus"
     },
-    "drone": {
-        "name": "Drone Shot (Aerial)",
-        "group": "Photography",
-        "prompt_suffix": ", aerial view, drone photography, bird's eye view, high angle shot, vast landscape, epic scale"
+    "lego": {
+        "name": "Lego (Brick)",
+        "group": "Material & 3D",
+        "prompt_suffix": ", made of lego bricks, plastic texture, lego set, studs, vibrant colors, toy photography, macro depth of field"
     },
-
-    # === Group: 3D & Digital ===
-    "3d_render": {
-        "name": "3D Render (Octane)",
-        "group": "3D & Digital",
-        "prompt_suffix": ", 3d render, octane render, unreal engine 5, ray tracing, highly detailed, photorealistic, 8k resolution"
-    },
-    "low_poly": {
-        "name": "Low Poly (Minimalist)",
-        "group": "3D & Digital",
-        "prompt_suffix": ", low poly style, minimalist 3d, sharp edges, flat shading, geometric shapes, isometric view"
+    "origami": {
+        "name": "Origami (Paper)",
+        "group": "Material & 3D",
+        "prompt_suffix": ", origami style, folded paper, paper texture, layered paper art, craft, soft shadows, intricate details"
     },
 
     # === Special ===
     "custom": {
         "name": "✨ Custom Style (Enter your own)",
         "group": "Special",
-        "prompt_suffix": "" # Placeholder, will be replaced by user input
+        "prompt_suffix": "" # Placeholder
     }
 }
 
@@ -214,37 +224,6 @@ def enhance_prompt(user_prompt, style_suffix):
         # Fallback to simple concatenation
         return f"{user_prompt}{style_suffix}"
 
-def process_prompt(original_prompt, style_id="none"):
-    """
-    Process the user prompt by appending the selected style suffix or using LLM enhancement.
-    """
-    print(f"Original Prompt: {original_prompt}")
-
-    # Check for magic flag to skip enhancement
-    if "--raw" in original_prompt:
-        print("Raw mode detected, skipping enhancement/style")
-        return original_prompt.replace("--raw", "").strip()
-    
-    style = STYLES.get(style_id)
-    style_suffix = style['prompt_suffix'] if style else ""
-    style_name = style['name'] if style else "Default"
-    
-    # If LLM is configured, use it to enhance the prompt
-    if text_client:
-        print(f"Enhancing prompt with style: {style_name}")
-        refined_prompt = enhance_prompt(original_prompt, style_suffix)
-    else:
-        # Fallback to simple concatenation
-        if style:
-            refined_prompt = f"{original_prompt}{style_suffix}"
-            print(f"Applied Style: {style_name}")
-        else:
-            refined_prompt = original_prompt
-            print("No style applied")
-        
-    print(f"Processed Prompt: {refined_prompt}")
-    return refined_prompt
-
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -258,7 +237,7 @@ def get_config():
             {"id": "model_2", "name": MODELS["model_2"]["name"]}
         ],
         "styles": [
-            {"id": k, "name": v["name"]} for k, v in STYLES.items()
+            {"id": k, "name": v["name"], "group": v.get("group", "Other")} for k, v in STYLES.items()
         ]
     })
 
