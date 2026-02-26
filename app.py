@@ -78,31 +78,86 @@ MODELS = {
     }
 }
 
-# Define Style Presets
+# Style Templates with Categories
 STYLES = {
-    "none": {
-        "name": "Default",
-        "prompt_suffix": ""
+    # === Group: Cinematic (Movies & TV) ===
+    "wes_anderson": {
+        "name": "Wes Anderson (Grand Budapest)",
+        "group": "Cinematic",
+        "prompt_suffix": ", in the style of Wes Anderson, symmetrical composition, pastel colors, retro aesthetic, highly detailed, whimsical, cinematic lighting"
     },
-    "cyberpunk": {
-        "name": "Cyberpunk",
-        "prompt_suffix": ", cyberpunk style, neon lights, futuristic city background, highly detailed, 8k resolution, vibrant colors"
-    },
-    "watercolor": {
-        "name": "Watercolor",
-        "prompt_suffix": ", watercolor painting, soft colors, artistic, dreamy, paper texture, delicate brush strokes"
+    "cyberpunk_2077": {
+        "name": "Cyberpunk 2077 (Neon Noir)",
+        "group": "Cinematic",
+        "prompt_suffix": ", cyberpunk 2077 style, neon lights, night city, rain, high tech low life, chromatic aberration, volumetric lighting, futuristic"
     },
     "ghibli": {
-        "name": "Ghibli Anime",
-        "prompt_suffix": ", Studio Ghibli style, anime, vibrant colors, detailed background, whimsical, Hayao Miyazaki"
+        "name": "Studio Ghibli (Anime)",
+        "group": "Cinematic",
+        "prompt_suffix": ", Studio Ghibli style, Hayao Miyazaki, anime, vibrant colors, peaceful atmosphere, detailed background art, hand drawn style"
     },
+    "dune": {
+        "name": "Dune (Epic Sci-Fi)",
+        "group": "Cinematic",
+        "prompt_suffix": ", Dune movie style, vast desert landscape, brutalist architecture, muted earth tones, cinematic scale, epic atmosphere, Denis Villeneuve"
+    },
+    
+    # === Group: Art Styles ===
+    "van_gogh": {
+        "name": "Van Gogh (Starry Night)",
+        "group": "Art Styles",
+        "prompt_suffix": ", in the style of Vincent van Gogh, thick impasto brushstrokes, swirling patterns, vibrant blue and yellow colors, expressive oil painting"
+    },
+    "ukiyo_e": {
+        "name": "Ukiyo-e (Japanese Woodblock)",
+        "group": "Art Styles",
+        "prompt_suffix": ", Ukiyo-e style, Japanese woodblock print, flat colors, bold outlines, Hokusai style, traditional japanese art"
+    },
+    "pixel_art": {
+        "name": "Pixel Art (Retro Game)",
+        "group": "Art Styles",
+        "prompt_suffix": ", pixel art, 8-bit style, retro video game, low resolution, dithering, vibrant colors"
+    },
+    "watercolor": {
+        "name": "Watercolor (Soft)",
+        "group": "Art Styles",
+        "prompt_suffix": ", watercolor painting, soft edges, paper texture, wet-on-wet technique, dreamy atmosphere, artistic"
+    },
+
+    # === Group: Photography ===
+    "polaroid": {
+        "name": "Polaroid (Vintage)",
+        "group": "Photography",
+        "prompt_suffix": ", polaroid photo, vintage aesthetic, film grain, soft focus, flash photography, nostalgia, 1990s style"
+    },
+    "macro": {
+        "name": "Macro Photography (Close-up)",
+        "group": "Photography",
+        "prompt_suffix": ", macro photography, extreme close-up, high detail, shallow depth of field, bokeh background, sharp focus"
+    },
+    "drone": {
+        "name": "Drone Shot (Aerial)",
+        "group": "Photography",
+        "prompt_suffix": ", aerial view, drone photography, bird's eye view, high angle shot, vast landscape, epic scale"
+    },
+
+    # === Group: 3D & Digital ===
     "3d_render": {
-        "name": "3D Render",
-        "prompt_suffix": ", 3D render, unreal engine 5, 8k, ray tracing, realistic, cinematic lighting, highly detailed textures"
+        "name": "3D Render (Octane)",
+        "group": "3D & Digital",
+        "prompt_suffix": ", 3d render, octane render, unreal engine 5, ray tracing, highly detailed, photorealistic, 8k resolution"
     },
-    "oil_painting": {
-        "name": "Oil Painting",
-        "prompt_suffix": ", oil painting, thick brush strokes, textured canvas, classical art style, rich colors"
+    "low_poly": {
+        "name": "Low Poly (Minimalist)",
+        "group": "3D & Digital",
+        "prompt_suffix": ", low poly style, minimalist 3d, sharp edges, flat shading, geometric shapes, isometric view"
+    },
+
+    # === Special ===
+    "custom": {
+        "name": "✨ Custom Style (Enter your own)",
+        "group": "Special",
+        "prompt_suffix": "" # Placeholder, will be replaced by user input
     }
 }
 

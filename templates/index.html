@@ -25,11 +25,24 @@
             </div>
             
             <div class="style-select-container">
-                <label>Select Style:</label>
-                <div id="styleOptions" class="style-options">
-                    <!-- Style buttons will be populated by JS -->
-                </div>
-                <input type="hidden" id="selectedStyle" value="none">
+                <label for="categorySelect">Category:</label>
+                <select id="categorySelect">
+                    <option value="all">All Categories</option>
+                    <!-- Populated by JS -->
+                </select>
+            </div>
+
+            <div class="style-select-container">
+                <label for="styleSelect">Style:</label>
+                <select id="styleSelect">
+                    <!-- Options will be populated based on category -->
+                </select>
+            </div>
+
+            <!-- Custom Style Input (Hidden by default) -->
+            <div id="customStyleContainer" class="hidden">
+                <label for="customStyleInput">Custom Style:</label>
+                <input type="text" id="customStyleInput" placeholder="e.g. Lego blocks, Paper cut art, Minecraft...">
             </div>
 
             <textarea id="promptInput" placeholder="Describe the image you want to generate..."></textarea>

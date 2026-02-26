@@ -42,16 +42,25 @@ h1 {
     width: 200px;
 }
 
-.model-select-container, .style-select-container {
+.model-select-container, .style-select-container, #customStyleContainer {
     text-align: left;
-    margin-bottom: 5px;
+    margin-bottom: 15px;
+}
+
+#customStyleInput {
+    padding: 8px;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+    font-size: 14px;
+    width: 100%;
+    box-sizing: border-box; /* Ensure padding doesn't overflow width */
 }
 
 label {
-    font-weight: 600;
-    margin-right: 10px;
     display: block;
     margin-bottom: 5px;
+    font-weight: bold;
+    color: #555;
 }
 
 select {

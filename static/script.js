@@ -3,8 +3,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const promptInput = document.getElementById('promptInput');
     const accessCodeInput = document.getElementById('accessCode');
     const modelSelect = document.getElementById('modelSelect');
-    const styleOptionsContainer = document.getElementById('styleOptions');
-    const selectedStyleInput = document.getElementById('selectedStyle');
+    const categorySelect = document.getElementById('categorySelect');
+    const styleSelect = document.getElementById('styleSelect');
+    const customStyleContainer = document.getElementById('customStyleContainer');
+    const customStyleInput = document.getElementById('customStyleInput');
+    
     const loadingDiv = document.getElementById('loading');
     const resultSection = document.getElementById('resultSection');
     const generatedImage = document.getElementById('generatedImage');
@@ -17,15 +20,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const debugTime = document.getElementById('debugTime');
     const debugTokens = document.getElementById('debugTokens');
 
-    // Fetch and populate models & styles on load
-    fetchConfig();
+    let allStyles = []; // Store fetched styles globally
 
-    async function fetchConfig() {
+    // Load models and styles on startup
+    loadConfig();
+
+    async function loadConfig() {
         try {
             const response = await fetch('/config');
             const data = await response.json();
             
-            // 1. Populate Models
+            // Populate Models
             modelSelect.innerHTML = '';
             if (data.models && data.models.length > 0) {
                 data.models.forEach(model => {
@@ -37,45 +42,107 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
             }
 
-            // 2. Populate Styles
-            styleOptionsContainer.innerHTML = '';
-            if (data.styles && data.styles.length > 0) {
-                data.styles.forEach(style => {
-                    const btn = document.createElement('div');
-                    btn.className = 'style-option';
-                    btn.textContent = style.name;
-                    btn.dataset.value = style.id;
-                    
-                    // Default selection
-                    if (style.id === 'none') {
-                        btn.classList.add('selected');
-                        selectedStyleInput.value = style.id;
-                    }
-
-                    // Click handler
-                    btn.addEventListener('click', () => {
-                        // Deselect all
-                        document.querySelectorAll('.style-option').forEach(b => b.classList.remove('selected'));
-                        // Select clicked
-                        btn.classList.add('selected');
-                        selectedStyleInput.value = style.id;
-                    });
-
-                    styleOptionsContainer.appendChild(btn);
-                });
-            }
+            // Store and populate Styles
+            allStyles = data.styles || [];
+            populateCategories(allStyles);
+            populateStyles(allStyles); // Initial population (All)
 
         } catch (error) {
-            console.error('Failed to load config:', error);
-            // Fallback UI if config fails
+            console.error('Error loading config:', error);
+            alert('Failed to load configuration. Is the server running?');
         }
     }
 
+    // Populate Category Selector
+    function populateCategories(styles) {
+        const categories = new Set(styles.map(s => s.group).filter(g => g));
+        
+        // Add "All" option
+        categorySelect.innerHTML = '<option value="all">All Categories</option>';
+        
+        // Add specific categories
+        Array.from(categories).sort().forEach(cat => {
+            const option = document.createElement('option');
+            option.value = cat;
+            option.textContent = cat;
+            categorySelect.appendChild(option);
+        });
+    }
+
+    // Populate Style Selector (Filtered)
+    function populateStyles(styles, categoryFilter = 'all') {
+        styleSelect.innerHTML = '';
+        
+        // Add Default/None option always
+        const defaultOption = document.createElement('option');
+        defaultOption.value = 'none';
+        defaultOption.textContent = 'No Style (Default)';
+        styleSelect.appendChild(defaultOption);
+
+        // Filter styles
+        let filteredStyles = styles;
+        if (categoryFilter !== 'all') {
+            filteredStyles = styles.filter(s => s.group === categoryFilter);
+        }
+
+        // Group logic (keep optgroups if showing 'all', or just list if specific category)
+        if (categoryFilter === 'all') {
+            const groups = {};
+            filteredStyles.forEach(style => {
+                if (style.id === 'none') return;
+                const groupName = style.group || 'Other';
+                if (!groups[groupName]) groups[groupName] = [];
+                groups[groupName].push(style);
+            });
+
+            for (const [groupName, groupStyles] of Object.entries(groups)) {
+                const optgroup = document.createElement('optgroup');
+                optgroup.label = groupName;
+                groupStyles.forEach(style => {
+                    const option = document.createElement('option');
+                    option.value = style.id;
+                    option.textContent = style.name;
+                    optgroup.appendChild(option);
+                });
+                styleSelect.appendChild(optgroup);
+            }
+        } else {
+            // Flat list for specific category
+            filteredStyles.forEach(style => {
+                if (style.id === 'none') return;
+                const option = document.createElement('option');
+                option.value = style.id;
+                option.textContent = style.name;
+                styleSelect.appendChild(option);
+            });
+        }
+    }
+
+    // Handle Category Change
+    categorySelect.addEventListener('change', () => {
+        const selectedCategory = categorySelect.value;
+        populateStyles(allStyles, selectedCategory);
+        // Reset custom input visibility
+        customStyleContainer.classList.add('hidden');
+    });
+
+    // Handle Custom Style Visibility
+    styleSelect.addEventListener('change', () => {
+        if (styleSelect.value === 'custom') {
+            customStyleContainer.classList.remove('hidden');
+            customStyleInput.focus();
+        } else {
+            customStyleContainer.classList.add('hidden');
+        }
+    });
+
+    // Handle Generate Button Click
     generateBtn.addEventListener('click', async () => {
         const prompt = promptInput.value.trim();
         const accessCode = accessCodeInput.value.trim();
         const selectedModel = modelSelect.value;
-        const selectedStyle = selectedStyleInput.value;
+        const selectedStyle = styleSelect.value;
+        const customStyle = customStyleInput.value.trim();
         
         if (!prompt) {
             alert('Please enter a prompt first.');
