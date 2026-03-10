@@ -1,9 +1,13 @@
 import os
 import time
+import requests
+import random
+import uuid
 from datetime import datetime, date
 from flask import Flask, render_template, request, jsonify
 from dotenv import load_dotenv
 from openai import OpenAI
+from storage import StorageManager
 
 # Load environment variables
 load_dotenv()
@@ -15,6 +19,10 @@ app = Flask(__name__, static_folder='static', static_url_path='/static')
 API_KEY = os.getenv("IMAGE_GEN_API_KEY")
 BASE_URL = os.getenv("ARK_BASE_URL", "https://ark.ap-southeast.bytepluses.com/api/v3")
 ACCESS_CODE = os.getenv("ACCESS_CODE")  # Optional access code
+
+# Initialize Storage Manager
+# Use 'static/gallery' to store images publicly accessible via Flask
+storage_manager = StorageManager(base_dir='static/gallery', max_files=2000)
 
 # Rate Limiting Config
 MAX_PROMPT_LENGTH = 1000
@@ -224,6 +232,54 @@ def enhance_prompt(user_prompt, style_suffix):
         # Fallback to simple concatenation
         return f"{user_prompt}{style_suffix}"
 
+@app.route('/random_prompt', methods=['POST'])
+def generate_random_prompt():
+    """
+    Generate a creative prompt using the LLM, optionally based on a style.
+    """
+    if not text_client:
+        return jsonify({"error": "Text generation service not configured"}), 503
+
+    try:
+        data = request.json
+        style_id = data.get('style_id', 'none')
+        
+        # Get style information if provided
+        style_name = "any style"
+        style_suffix = ""
+        if style_id != 'none' and style_id in STYLES:
+            style_name = STYLES[style_id]['name']
+            style_suffix = STYLES[style_id]['prompt_suffix']
+
+        system_prompt = """
+        You are a creative muse for an AI artist.
+        Generate a SINGLE, vivid, and imaginative image description (prompt).
+        
+        Rules:
+        1. Output ONLY the prompt text. No "Here is a prompt:" or quotes.
+        2. Keep it under 50 words.
+        3. Be specific about subject, lighting, and composition.
+        4. Do NOT include technical parameters (like --v 5).
+        """
+        
+        user_message = f"Generate a creative image prompt suitable for {style_name}. The prompt should work well with this style description: {style_suffix}"
+        
+        response = text_client.chat.completions.create(
+            model=TEXT_MODEL_ENDPOINT,
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_message}
+            ],
+            temperature=0.9, # Higher temperature for more creativity
+        )
+        
+        random_prompt = response.choices[0].message.content.strip()
+        return jsonify({"prompt": random_prompt})
+
+    except Exception as e:
+        print(f"Random prompt generation failed: {e}")
+        return jsonify({"error": str(e)}), 500
+
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -326,11 +382,18 @@ def generate_image():
         if response.data and len(response.data) > 0:
             image_url = response.data[0].url
             
+            # Save image locally for persistence
+            local_image_url = storage_manager.save_image(image_url)
+            
+            if not local_image_url:
+                print("Warning: Failed to save image locally. Using temporary URL.")
+                local_image_url = image_url # Fallback to temp URL if save fails
+
             # Get style name for response
             style_name = STYLES.get(style_id, {}).get("name", "Unknown")
             
             return jsonify({
-                "image_url": image_url, 
+                "image_url": local_image_url, 
                 "original_prompt": user_prompt,
                 "final_prompt": final_prompt,
                 "model_used": selected_model["name"],

@@ -7,6 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const styleSelect = document.getElementById('styleSelect');
     const customStyleContainer = document.getElementById('customStyleContainer');
     const customStyleInput = document.getElementById('customStyleInput');
+    const surpriseBtn = document.getElementById('surpriseBtn');
     
     const loadingDiv = document.getElementById('loading');
     const resultSection = document.getElementById('resultSection');
@@ -19,6 +20,20 @@ document.addEventListener('DOMContentLoaded', () => {
     const debugOriginalPrompt = document.getElementById('debugOriginalPrompt');
     const debugTime = document.getElementById('debugTime');
     const debugTokens = document.getElementById('debugTokens');
+
+    // Gallery Elements
+    const galleryBtn = document.getElementById('galleryBtn');
+    const closeGalleryBtn = document.getElementById('closeGalleryBtn');
+    const gallerySection = document.getElementById('gallerySection');
+    const galleryGrid = document.getElementById('galleryGrid');
+    
+    // Modal Elements
+    const imageModal = document.getElementById('imageModal');
+    const closeModalBtn = document.getElementById('closeModalBtn');
+    const modalImage = document.getElementById('modalImage');
+    const modalPrompt = document.getElementById('modalPrompt');
+    const modalDate = document.getElementById('modalDate');
+    const modalStyle = document.getElementById('modalStyle');
 
     let allStyles = []; // Store fetched styles globally
 
@@ -136,6 +151,76 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // Handle Surprise Me Button
+    surpriseBtn.addEventListener('click', async () => {
+        // Disable button to prevent spamming
+        surpriseBtn.disabled = true;
+        const originalText = surpriseBtn.innerHTML;
+        surpriseBtn.innerHTML = '🎲 Rolling...';
+        promptInput.value = 'Thinking of something creative...';
+
+        try {
+            // Logic: Always pick a random style for "Surprise Me"
+            // This ensures a fresh surprise every time, even if a style is already selected.
+            
+            let currentStyleId = 'none';
+
+            if (allStyles.length > 0) {
+                // Filter valid styles (exclude 'none' and 'custom')
+                const validStyles = allStyles.filter(s => s.id !== 'none' && s.id !== 'custom');
+                
+                if (validStyles.length > 0) {
+                    // Pick random style
+                    const randomStyle = validStyles[Math.floor(Math.random() * validStyles.length)];
+                    currentStyleId = randomStyle.id;
+
+                    // Update UI to reflect random style choice
+                    // 1. Set Category
+                    if (randomStyle.group) {
+                        categorySelect.value = randomStyle.group;
+                        // Important: Manually trigger the category change logic to repopulate style dropdown
+                        populateStyles(allStyles, randomStyle.group);
+                    } else {
+                        categorySelect.value = 'all';
+                        populateStyles(allStyles, 'all');
+                    }
+                    
+                    // 2. Set Style
+                    styleSelect.value = randomStyle.id;
+                    
+                    // 3. Handle Custom Input visibility
+                    if (randomStyle.id === 'custom') {
+                        customStyleContainer.classList.remove('hidden');
+                    } else {
+                        customStyleContainer.classList.add('hidden');
+                    }
+                }
+            }
+
+            // Call Backend
+            const response = await fetch('/random_prompt', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ style_id: currentStyleId })
+            });
+
+            const data = await response.json();
+            
+            if (data.prompt) {
+                promptInput.value = data.prompt;
+            } else {
+                promptInput.value = "Failed to get inspiration. Try again!";
+            }
+
+        } catch (error) {
+            console.error('Surprise failed:', error);
+            promptInput.value = "An error occurred. Please try again.";
+        } finally {
+            surpriseBtn.disabled = false;
+            surpriseBtn.innerHTML = originalText;
+        }
+    });
+
     // Handle Generate Button Click
     generateBtn.addEventListener('click', async () => {
         const prompt = promptInput.value.trim();
@@ -183,6 +268,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 <strong>Style:</strong> ${data.style_used || 'Default'}<br>
             `;
             
+            // Save to Gallery History
+            saveToHistory({
+                url: data.image_url,
+                prompt: data.original_prompt,
+                model: data.model_used,
+                style: data.style_used,
+                timestamp: new Date().toISOString()
+            });
+
             // Populate Debug Info
             debugOriginalPrompt.textContent = data.original_prompt;
             debugFinalPrompt.textContent = data.final_prompt;
@@ -205,4 +299,101 @@ document.addEventListener('DOMContentLoaded', () => {
             loadingDiv.classList.add('hidden');
         }
     });
+
+    // === Gallery Logic ===
+
+    // Toggle Gallery View
+    galleryBtn.addEventListener('click', () => {
+        gallerySection.classList.remove('hidden');
+        loadGallery();
+        // Scroll to gallery
+        gallerySection.scrollIntoView({ behavior: 'smooth' });
+    });
+
+    closeGalleryBtn.addEventListener('click', () => {
+        gallerySection.classList.add('hidden');
+    });
+
+    // Save item to LocalStorage
+    function saveToHistory(item) {
+        const history = JSON.parse(localStorage.getItem('image_history') || '[]');
+        // Add ID
+        item.id = Date.now().toString();
+        // Add to beginning
+        history.unshift(item);
+        // Limit to 50 items in local history (ECS keeps more, but browser keeps recent)
+        if (history.length > 50) history.pop();
+        
+        localStorage.setItem('image_history', JSON.stringify(history));
+    }
+
+    // Load and Render Gallery
+    function loadGallery() {
+        const history = JSON.parse(localStorage.getItem('image_history') || '[]');
+        galleryGrid.innerHTML = '';
+
+        if (history.length === 0) {
+            galleryGrid.innerHTML = '<p class="text-gray-500 col-span-full text-center py-8">No images in your gallery yet. Generate some!</p>';
+            return;
+        }
+
+        history.forEach(item => {
+            const card = document.createElement('div');
+            card.className = 'bg-gray-50 rounded shadow overflow-hidden relative group';
+            
+            // Format Date
+            const date = new Date(item.timestamp).toLocaleDateString() + ' ' + new Date(item.timestamp).toLocaleTimeString();
+
+            card.innerHTML = `
+                <img src="${item.url}" alt="${item.prompt}" class="w-full h-48 object-cover cursor-pointer hover:opacity-90 transition" onclick="openModal('${item.url}', '${item.prompt.replace(/'/g, "\\'")}', '${date}', '${item.style}')">
+                <div class="p-3">
+                    <p class="text-sm text-gray-800 truncate" title="${item.prompt}">${item.prompt}</p>
+                    <div class="flex justify-between items-center mt-2 text-xs text-gray-500">
+                        <span>${item.style || 'Default'}</span>
+                        <button class="text-red-500 hover:text-red-700 delete-btn" data-id="${item.id}">Delete</button>
+                    </div>
+                </div>
+            `;
+            
+            // Add Delete Event
+            const deleteBtn = card.querySelector('.delete-btn');
+            deleteBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if(confirm('Remove this image from your history?')) {
+                    deleteFromHistory(item.id);
+                }
+            });
+
+            galleryGrid.appendChild(card);
+        });
+    }
+
+    // Delete item
+    function deleteFromHistory(id) {
+        let history = JSON.parse(localStorage.getItem('image_history') || '[]');
+        history = history.filter(item => item.id !== id);
+        localStorage.setItem('image_history', JSON.stringify(history));
+        loadGallery(); // Re-render
+    }
+
+    // === Modal Logic ===
+    window.openModal = function(url, prompt, date, style) {
+        modalImage.src = url;
+        modalPrompt.textContent = prompt;
+        modalDate.textContent = date;
+        modalStyle.textContent = style;
+        imageModal.classList.remove('hidden');
+    };
+
+    closeModalBtn.addEventListener('click', () => {
+        imageModal.classList.add('hidden');
+    });
+
+    // Close modal on click outside
+    imageModal.addEventListener('click', (e) => {
+        if (e.target === imageModal) {
+            imageModal.classList.add('hidden');
+        }
+    });
+
 });
