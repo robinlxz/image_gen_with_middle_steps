@@ -26,6 +26,7 @@ storage_manager = StorageManager(base_dir='static/gallery', max_files=2000)
 
 # Rate Limiting Config
 MAX_PROMPT_LENGTH = 1000
+RANDOM_PROMPT_DAILY_LIMIT = int(os.getenv("RANDOM_PROMPT_DAILY_LIMIT", "200"))
 
 # Quotas per model ID
 MODEL_QUOTAS = {
@@ -66,6 +67,25 @@ def increment_rate_limit(model_id):
     else:
         # Handle unexpected model IDs safely
         rate_limit_store["counts"][model_id] = 1
+
+# Simple in-memory limiter for random prompts
+random_prompt_store = {
+    "date": date.today(),
+    "count": 0
+}
+
+def check_random_prompt_limit():
+    """Check daily limit for random prompt generation"""
+    today = date.today()
+    if random_prompt_store["date"] != today:
+        random_prompt_store["date"] = today
+        random_prompt_store["count"] = 0
+    if random_prompt_store["count"] >= RANDOM_PROMPT_DAILY_LIMIT:
+        return False, f"Daily limit of {RANDOM_PROMPT_DAILY_LIMIT} random prompts reached. Try again tomorrow."
+    return True, ""
+
+def increment_random_prompt():
+    random_prompt_store["count"] += 1
 
 # Text Generation Config
 TEXT_API_KEY = os.getenv("TEXT_GEN_API_KEY")
@@ -237,6 +257,18 @@ def generate_random_prompt():
     """
     Generate a creative prompt using the LLM, optionally based on a style.
     """
+    # Enforce access code if configured
+    if ACCESS_CODE:
+        data = request.json or {}
+        user_code = data.get('access_code')
+        if user_code != ACCESS_CODE:
+            return jsonify({"error": "Invalid Access Code"}), 401
+
+    # Enforce daily limit to protect LLM budget
+    allowed, message = check_random_prompt_limit()
+    if not allowed:
+        return jsonify({"error": message}), 429
+
     if not text_client:
         return jsonify({"error": "Text generation service not configured"}), 503
 
@@ -274,6 +306,7 @@ def generate_random_prompt():
         )
         
         random_prompt = response.choices[0].message.content.strip()
+        increment_random_prompt()
         return jsonify({"prompt": random_prompt})
 
     except Exception as e:

@@ -198,14 +198,22 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             // Call Backend
+            const accessCode = accessCodeInput.value.trim();
             const response = await fetch('/random_prompt', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ style_id: currentStyleId })
+                body: JSON.stringify({ style_id: currentStyleId, access_code: accessCode })
             });
 
             const data = await response.json();
-            
+            if (!response.ok) {
+                if (response.status === 401) {
+                    promptInput.value = "Access Code invalid. Please check and try again.";
+                    return;
+                }
+                promptInput.value = data.error || "Failed to get inspiration. Try again!";
+                return;
+            }
             if (data.prompt) {
                 promptInput.value = data.prompt;
             } else {
